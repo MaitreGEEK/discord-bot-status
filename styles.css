@@ -1,0 +1,123 @@
+/* Réinitialisation de certains styles de base */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Corps de la page */
+body {
+    font-family: 'Comfortaa', sans-serif; /* Applique la police Comfortaa */
+    background-color: #101011; /* Fond noir ou gris foncé */
+    color: #fff; /* Texte blanc */
+    line-height: 1.6;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+/* Conteneur principal */
+#content {
+    background-color: rgba(0, 0, 0, 0.8); /* Fond noir transparent */
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+    width: 90%;
+    max-width: 900px;
+}
+
+/* Formulaires */
+form {
+    margin-bottom: 20px;
+}
+
+label {
+    font-size: 1rem;
+    font-weight: bold;
+    margin-bottom: 8px;
+    display: block;
+    color: #fff; /* Texte blanc pour le label */
+}
+
+input[type="text"] {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 12px;
+    border: 1px solid #fff; /* Bordure blanche */
+    border-radius: 4px;
+    font-size: 1rem;
+    background-color: #333; /* Fond d'entrée sombre */
+    color: #fff; /* Texte blanc */
+}
+
+button {
+    padding: 10px 15px;
+    background-color: #fff; /* Fond blanc pour les boutons */
+    color: #000; /* Texte noir */
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.3s;
+}
+
+button:hover {
+    background-color: #ccc; /* Fond gris clair au survol */
+}
+
+/* Liens */
+a {
+    color: #9b59b6; /* Couleur violet clair pour les liens */
+    text-decoration: none;
+    font-weight: bold;
+    margin-right: 0; /* Enlève l'espace automatique après les liens */
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+/* Texte spécifique */
+strong {
+    font-weight: bold;
+    color: #fff; /* Texte en gras blanc */
+}
+
+/* Code inline */
+code {
+    background-color: #333;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: monospace;
+    color: #fff;
+}
+
+/* Statut en couleur */
+p {
+    font-size: 16px;
+}
+
+p strong {
+    font-size: 1rem;
+}
+
+p a:last-child {
+    margin-right: 0;
+}
+
+p .status-up {
+    color: #fff; /* Texte blanc pour le statut "up" */
+}
+
+p .status-down {
+    color: #fff; /* Texte blanc pour le statut "down" */
+}
+
+p .status-ping {
+    color: #fff; /* Texte blanc pour le statut "ping" */
+}
+
+p .status-avg-ping {
+    color: #fff; /* Texte blanc pour le statut "avg-ping" */
+}
