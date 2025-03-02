@@ -1,6 +1,10 @@
 # discord-bot-status  
 Simple and fast web app with an API to let your users know if the bot is up or down.  
 
+## Photos 
+
+![alt text](image.png)
+
 ## Routes  
 
 - `GET /shard/:shardId` → Returns the status of the shard
@@ -20,11 +24,11 @@ Simple and fast web app with an API to let your users know if the bot is up or d
 
 ## ENV variables
 
-ENV API_PORT - changes the port of the app by default 6071
-ENV API_URL - changes the url of the app by default localhost (it's only for cosmetic)
-ENV DATABASE_PATH - changes the path of the database by default ./shards.db
-ENV TOKEN - changes the token for the application by default NULL (IT'S IMPORTANT TO CHANGE IT)
-ENV RESPONSE_PERIOD - period in seconds which the application will check if the bot's up or not, by default 60
+- ENV API_PORT - changes the port of the app by default 6071
+- ENV API_URL - changes the url of the app by default localhost (it's only for cosmetic)
+- ENV DATABASE_PATH - changes the path of the database by default ./shards.db
+- ENV TOKEN - changes the token for the application by default NULL (IT'S IMPORTANT TO CHANGE IT)
+- ENV RESPONSE_PERIOD - period in seconds which the application will check if the bot's up or not, by default 60
 
 ## Functionality  
 
