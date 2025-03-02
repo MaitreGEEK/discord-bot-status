@@ -421,7 +421,7 @@ async function getShardStatusHtml(shard, period, solo = false) {
             </div>
         `;
     } catch (e) {
-        console.error("Error while getting shard status", e);
+        promisifiedError("Error while getting shard status", e);
         return "";
     }
 }
