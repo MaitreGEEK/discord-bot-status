@@ -234,6 +234,8 @@ async function getStatusShards() {
 
         if (shards.length == 1) return [(await getShardStatus(shards[0], true))]
 
+        shards.sort((a, b) => a.id - b.id);
+
         return (await Promise.all(shards.map(async shard => {
             return getShardStatus(shard)
         })))

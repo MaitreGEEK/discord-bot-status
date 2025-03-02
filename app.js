@@ -6,7 +6,7 @@ const { init_database, routineCheckShards, updateShard, promisifiedLog, promisif
     init_database(fdatabasePath)
     promisifiedLog("Database ready!", "Opened from", fdatabasePath)
 
-    const fresponsePeriod = process.env.RESPONSE_PERIOD || responsePeriod || 10; // 1 minute (exemple)
+    const fresponsePeriod = process.env.RESPONSE_PERIOD || responsePeriod || 60; // 1 minute (exemple)
     routineCheckShards(fresponsePeriod)
     setInterval(() => {
         routineCheckShards(fresponsePeriod)
@@ -68,7 +68,6 @@ const server = Bun.serve({
 
                 //UPdate all shards
                 let response = await updateShards(shards)
-
                 if (response) return new Response(JSON.stringify({ success: true }, { headers: { 'Content-Type': 'application/json' }, status: 200 }));
                 else return new Response(JSON.stringify({ success: false, cause: "Internal Server Error" }), { headers: { 'Content-Type': 'application/json' }, status: 500 });
             },
@@ -81,9 +80,7 @@ const server = Bun.serve({
         "/status": {
             "GET": async () => {
                 let shards = await getStatusShards()
-
                 if (!shards) return new Response(JSON.stringify({ success: false, cause: "Internal Server Error" }), { headers: { 'Content-Type': 'application/json' }, status: 500 });
-
                 return new Response(shards.join("\n"), { headers: { 'Content-Type': 'text/markdown; charset=UTF-8' } });
             }
         },
