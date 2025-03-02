@@ -7,117 +7,153 @@
 
 /* Corps de la page */
 body {
-    font-family: 'Comfortaa', sans-serif; /* Applique la police Comfortaa */
-    background-color: #101011; /* Fond noir ou gris foncé */
-    color: #fff; /* Texte blanc */
+    font-family: 'Comfortaa', sans-serif;
+    background-color: #101011;
+    color: #fff;
     line-height: 1.6;
     display: flex;
     justify-content: center;
     align-items: center;
     height: 100vh;
+    padding: 20px;
 }
 
 /* Conteneur principal */
 #content {
-    background-color: rgba(0, 0, 0, 0.8); /* Fond noir transparent */
+    background-color: rgba(0, 0, 0, 0.8);
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
-    width: 90%;
+    width: 100%;
     max-width: 900px;
 }
 
-/* Formulaires */
-form {
+/* Titre */
+h1 {
+    font-size: 2rem;
+    color: #fff;
     margin-bottom: 20px;
+    text-align: center;
 }
 
-label {
-    font-size: 1rem;
+/* Container pour chaque shard */
+.shard-container {
+    background-color: rgba(0, 0, 0, 0.6);
+    margin: 15px 0;
+    padding: 15px;
+    border-radius: 8px;
+    border-left: 10px solid transparent;
+    transition: transform 0.3s ease;
+}
+
+.shard-container.up {
+    border-left-color: #2ecc71;
+    /* Vert pour les shards "up" */
+}
+
+.shard-container.down {
+    border-left-color: #e74c3c;
+    /* Rouge pour les shards "down" */
+}
+
+/* Tête de shard */
+.shard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.shard-name {
+    font-size: 1.2rem;
     font-weight: bold;
-    margin-bottom: 8px;
-    display: block;
-    color: #fff; /* Texte blanc pour le label */
-}
-
-input[type="text"] {
-    width: 100%;
-    padding: 8px;
-    margin-bottom: 12px;
-    border: 1px solid #fff; /* Bordure blanche */
-    border-radius: 4px;
-    font-size: 1rem;
-    background-color: #333; /* Fond d'entrée sombre */
-    color: #fff; /* Texte blanc */
-}
-
-button {
-    padding: 10px 15px;
-    background-color: #fff; /* Fond blanc pour les boutons */
-    color: #000; /* Texte noir */
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 1rem;
-    transition: background-color 0.3s;
-}
-
-button:hover {
-    background-color: #ccc; /* Fond gris clair au survol */
-}
-
-/* Liens */
-a {
-    color: #9b59b6; /* Couleur violet clair pour les liens */
-    text-decoration: none;
-    font-weight: bold;
-    margin-right: 0; /* Enlève l'espace automatique après les liens */
-}
-
-a:hover {
-    text-decoration: underline;
-}
-
-/* Texte spécifique */
-strong {
-    font-weight: bold;
-    color: #fff; /* Texte en gras blanc */
-}
-
-/* Code inline */
-code {
-    background-color: #333;
-    padding: 2px 6px;
-    border-radius: 4px;
-    font-family: monospace;
     color: #fff;
 }
 
-/* Statut en couleur */
-p {
-    font-size: 16px;
+.shard-status {
+    font-size: 1.5rem;
+    font-weight: bold;
 }
 
-p strong {
-    font-size: 1rem;
+.shard-status.up {
+    color: #2ecc71;
+    /* Vert pour le statut "up" */
 }
 
-p a:last-child {
-    margin-right: 0;
+.shard-status.down {
+    color: #e74c3c;
+    /* Rouge pour le statut "down" */
 }
 
-p .status-up {
-    color: #fff; /* Texte blanc pour le statut "up" */
+/* Détails supplémentaires */
+.shard-details {
+    margin-top: 10px;
+    font-size: 0.9rem;
+    color: #ddd;
 }
 
-p .status-down {
-    color: #fff; /* Texte blanc pour le statut "down" */
+/* Barre de statut en bas */
+.status-bar {
+    height: 10px;
+    margin-top: 15px;
+    border-radius: 5px;
+    background-color: rgba(255, 255, 255, 0.3);
+    transition: width 0.3s ease;
 }
 
-p .status-ping {
-    color: #fff; /* Texte blanc pour le statut "ping" */
+.status-bar.up {
+    background-color: #2ecc71;
+    /* Vert pour les shards "up" */
 }
 
-p .status-avg-ping {
-    color: #fff; /* Texte blanc pour le statut "avg-ping" */
+.status-bar.down {
+    background-color: #e74c3c;
+    /* Rouge pour les shards "down" */
+}
+/* Timeline des événements */
+.event-timeline {
+    position: relative;
+    height: 80px; /* Hauteur de la ligne de timeline */
+    margin-top: 20px;
+    background-color: #1a1a1a; /* Fond sombre */
+    border-radius: 10px;
+    overflow-x: auto; /* Autorise le défilement horizontal */
+    width: 100%; /* S'assurer qu'il prend toute la largeur disponible */
+}
+
+/* Barres d'événements */
+.event-bar {
+    position: absolute;
+    top: 50%; /* Centrer la barre verticalement */
+    transform: translateY(-50%); /* Ajuste la barre pour que son centre soit aligné avec le milieu */
+    width: 4px; /* Largeur des barres */
+    height: 70%; /* Hauteur des barres */
+    border-radius: 2px;
+    transition: background-color 0.3s ease;
+}
+
+/* Barres "up" (vertes) */
+.event-bar.up {
+    background-color: #28a745; /* Vert pour 'up' */
+}
+
+/* Barres "down" (rouges) */
+.event-bar.down {
+    background-color: #dc3545; /* Rouge pour 'down' */
+}
+
+/* Tooltip au survol des barres */
+.event-tooltip {
+    position: absolute;
+    bottom: 45px; /* Position du tooltip au-dessus de la barre */
+    background-color: #333;
+    color: #fff;
+    padding: 5px;
+    border-radius: 4px;
+    font-size: 12px;
+    display: none;
+    white-space: nowrap;
+}
+
+.event-bar:hover .event-tooltip {
+    display: block; /* Affiche le tooltip au survol */
 }

@@ -316,9 +316,131 @@ async function updateShards(shards) {
     }
 }
 
+async function getStatusPageHtml(shards, T, metadata = "") {
+    let shardsHtml;
+    if (!shards?.length) shardsHtml = "<p>No shards listed... Start sending data to the api via the /shard endpoint!</p>"
+    else {
+        if (shards.length == 1) shardsHtml = await getShardStatusHtml(shards[0], T, true)
+        shards.sort((a, b) => a.id - b.id);
 
+        shardsHtml = (await Promise.all(shards.map(async (shard) => {
+            let shardHtml = await getShardStatusHtml(shard, T)
+            return shardHtml
+        }))).join("");
+    }
+
+
+    return `
+      <!DOCTYPE html>
+      <html lang="en">
+        <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <meta name="author" content="MaitreGEEK">          
+          ${metadata}
+          <link rel="stylesheet" href="./styles.css">
+          <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@300;400;700&display=swap" rel="stylesheet">
+          <link rel="icon" href="./favicon.ico">
+          <title>Bot Status</title>
+        </head>
+        <body>
+          <div id="content">
+            <h1>Bot Status</h1>
+            <ul>
+              ${shardsHtml}
+            </ul>
+          </div>
+        </body>
+      </html>
+    `;
+}
+const { marked } = require("marked");
+
+async function getShardStatusHtml(shard, period, solo = false) {
+    try {
+        if (!shard?.id && shard.id != 0) return "";
+
+        // Parser les événements et préparer les données
+        shard.last24hevents = JSON.parse(shard.last24hevents);
+        shard.last24hpings = JSON.parse(shard.last24hpings).map(i => i.ping);
+        shard.name = solo ? "Bot Status" : `Shard ${shard.id}`;
+
+        const status = shard.status || 'down';
+        const uptimeText = shard.status == "up" ? marked(`**up:** \`${!!shard.uptime ? await formatUptime(Math.floor((Date.now() - shard.uptime) / 1000)) : 'none'}\``) : '';
+        const pingText = shard.status == "up" ? marked(`**ping:** \`${shard.ping}ms\` **24h average ping:** \`${average(shard.last24hpings)}ms\``) : '';
+
+        // Si la version est présente, l'afficher, sinon la supprimer
+        const versionText = shard.version ? `- v${shard.version}` : '';
+
+        // Diviser la période en segments égaux
+        const segmentsCount = 70; // Diviser en 70 segments (par exemple)
+        const segmentDuration = (period * 1000) / segmentsCount; // Durée de chaque segment en millisecondes (on convertit period en ms)
+
+        // Créer un tableau de statuts initiaux pour chaque segment
+        const segmentStatuses = new Array(segmentsCount).fill('down'); // Par défaut, tout est down
+
+        // Assigner les statuts en fonction des événements et de la période
+        let lastEventStatus = 'down'; // Au début, on suppose que le statut est "down"
+        let lastEventTime = Date.now() - (period * 1000); // L'événement précédent est "avant" la période (start), converti en ms
+
+        for (const event of shard.last24hevents) {
+            const eventTime = event.t; // event.t est déjà en ms, pas besoin de conversion
+
+            if (eventTime < lastEventTime) continue; // Si l'événement est avant la période, ignorer
+
+            // Trouver les indices des segments
+            const eventStartSegmentIndex = Math.floor((eventTime - lastEventTime) / segmentDuration);
+            const eventEndSegmentIndex = Math.floor((eventTime - lastEventTime + segmentDuration) / segmentDuration);
+
+            // Mettre à jour les statuts des segments entre l'événement précédent et l'événement actuel
+            for (let i = eventStartSegmentIndex; i <= eventEndSegmentIndex; i++) {
+                segmentStatuses[i] = event.event === "up" ? "up" : "down";
+            }
+
+            lastEventTime = eventTime; // Mettre à jour le dernier événement
+        }
+
+        // Créer les traits pour chaque segment
+        const eventBars = segmentStatuses.map((status, index) => {
+            const percentage = ((index + 1) / (segmentsCount + 1)) * 100; // Décalage pour que le premier ne soit pas à 0%
+
+            // Calculer le timestamp du segment (en millisecondes) dans la période
+            const segmentStartTimestamp = Date.now() - (period * 1000 - index * segmentDuration);
+
+            // Convertir le timestamp en date lisible (format ISO ou autre selon les besoins)
+            const eventDate = new Date(segmentStartTimestamp).toISOString(); // Par exemple en format ISO
+
+            // Créer le div de la barre d'événement avec le tooltip contenant la date
+            return `
+                <div class="event-bar ${status}" style="left: ${percentage}%" title="Event at: ${eventDate}">
+                </div>
+            `;
+        }).join('');
+
+        // Retourner le contenu stylisé HTML
+        return `
+            <div class="shard-container ${status}">
+                <div class="shard-header">
+                    <span class="shard-name">${shard.name} ${versionText}</span>
+                    <span class="shard-status ${status}">${statusEmoji[status]}</span>
+                </div>
+                <div class="shard-details">
+                    ${uptimeText}
+                    ${pingText}
+                </div>
+                <div class="event-timeline">
+                    ${eventBars}
+                </div>
+            </div>
+        `;
+    } catch (e) {
+        console.error("Error while getting shard status", e);
+        return "";
+    }
+}
 
 module.exports = {
+    getStatusPageHtml,
     updateShards,
     promisifiedError,
     promisifiedLog,

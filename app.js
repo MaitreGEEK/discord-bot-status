@@ -1,12 +1,12 @@
 const { apiPort, databasePath, responsePeriod, apiUrl } = require("./specificConfig.json");
-const { init_database, routineCheckShards, updateShard, promisifiedLog, promisifiedError, getStatusShards, resetDatabase, getShard, sanitizeSQL, deleteShard, getAllShards, checkTimeForAllshards, updateShards } = require("./functions.js");
+const { init_database, routineCheckShards, updateShard, promisifiedLog, promisifiedError, getStatusShards, resetDatabase, getShard, sanitizeSQL, deleteShard, getAllShards, checkTimeForAllshards, updateShards, getStatusPageHtml } = require("./functions.js");
+const fdatabasePath = process.argv.includes("dev") ? "test-shards.db" : (process.env.DATABASE_PATH || databasePath || "shards.db")
+const fresponsePeriod = process.env.RESPONSE_PERIOD || responsePeriod || 60; // 1 minute (exemple)
 
 (async () => {
-    const fdatabasePath = process.argv.includes("dev") ? "test-shards.db" : (process.env.DATABASE_PATH || databasePath || "shards.db")
     init_database(fdatabasePath)
     promisifiedLog("Database ready!", "Opened from", fdatabasePath)
 
-    const fresponsePeriod = process.env.RESPONSE_PERIOD || responsePeriod || 60; // 1 minute (exemple)
     routineCheckShards(fresponsePeriod)
     setInterval(() => {
         routineCheckShards(fresponsePeriod)
@@ -79,9 +79,9 @@ const server = Bun.serve({
         },
         "/status": {
             "GET": async () => {
-                let shards = await getStatusShards()
+                let shards = await getAllShards()
                 if (!shards) return new Response(JSON.stringify({ success: false, cause: "Internal Server Error" }), { headers: { 'Content-Type': 'application/json' }, status: 500 });
-                return new Response(shards.join("\n"), { headers: { 'Content-Type': 'text/markdown; charset=UTF-8' } });
+                return new Response(await getStatusPageHtml(shards, fresponsePeriod*10), { headers: { 'Content-Type': 'text/html' } });
             }
         },
         "/reset": {
