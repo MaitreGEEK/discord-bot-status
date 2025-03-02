@@ -366,7 +366,7 @@ async function getShardStatusHtml(shard, period, solo = false) {
 
         let status = shard.status || 'down';
         let uptimeText = shard.status == "up" ? marked(`**up:** \`${!!shard.uptime ? await formatUptime(Math.floor((Date.now() - shard.uptime) / 1000)) : 'none'}\``) : '';
-        let pingText = shard.status == "up" ? marked(`**ping:** \`${shard.ping}ms\` **24h average ping:** \`${average(shard.last24hpings)}ms\``) : '';
+        let pingText = shard.status == "up" ? marked(`**ping:** \`${shard.ping}ms\`\n\n**24h average ping:** \`${average(shard.last24hpings)}ms\``) : '';
         let versionText = shard.version ? `- v${shard.version}` : '';
 
         let segmentsCount = 50;
@@ -391,16 +391,24 @@ async function getShardStatusHtml(shard, period, solo = false) {
         //lastEventTime + x*period = Date à x%  
 
         let eventBars = segmentStatuses.map((status, index) => {
+            let label = "";
+
+            if (index === 0) label = `<div class="event-label left">${formatPeriod(period)} ago</div>`;
+            if (index === segmentStatuses.length - 1) label = `<div class="event-label right">now</div>`;
+
             return `
-                <div class="event-bar ${status}" style="left: ${((index + 1) / (segmentsCount + 1)) * 100}%" title="Event at: ${new Date(segmentTimestamps[index]).toISOString()}">
+                <div class="event-bar ${status}" style="left: ${((index + 1) / (segmentsCount + 1)) * 100}%"
+                    title="Event at: ${new Date(segmentTimestamps[index]).toISOString()}">
                 </div>
+                ${label}
             `;
         }).join('');
+
 
         return `
             <div class="shard-container ${status}">
                 <div class="shard-header">
-                    <span class="shard-name">${shard.name} ${versionText}</span>
+                    <span class="shard-name"><strong>${shard.name}</strong> ${versionText}</span>
                     <span class="shard-status ${status}">${statusEmoji[status]}</span>
                 </div>
                 <div class="shard-details">
@@ -417,6 +425,14 @@ async function getShardStatusHtml(shard, period, solo = false) {
         return "";
     }
 }
+
+const formatPeriod = (seconds) => {
+    if (seconds >= 86400) return `${Math.floor(seconds / 86400)}d`; // Jours
+    if (seconds >= 3600) return `${Math.floor(seconds / 3600)}h`; // Heures
+    if (seconds >= 60) return `${Math.floor(seconds / 60)}m`; // Minutes
+    return `${seconds}s`; // Secondes
+};
+
 
 module.exports = {
     getStatusPageHtml,

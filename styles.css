@@ -87,8 +87,12 @@ h1 {
 /* Détails supplémentaires */
 .shard-details {
     margin-top: 10px;
-    font-size: 0.9rem;
+    font-size: 1.05rem;
     color: #ddd;
+    align-items: center;
+    display: flex;
+    justify-content: center;
+    gap: 10%;
 }
 
 /* Barre de statut en bas */
@@ -109,42 +113,56 @@ h1 {
     background-color: #e74c3c;
     /* Rouge pour les shards "down" */
 }
+
 /* Timeline des événements */
 .event-timeline {
     position: relative;
-    height: 80px; /* Hauteur de la ligne de timeline */
+    height: 80px;
+    /* Hauteur de la ligne de timeline */
     margin-top: 20px;
-    background-color: #1a1a1a; /* Fond sombre */
+    background-color: #1a1a1a;
+    /* Fond sombre */
     border-radius: 10px;
-    overflow-x: auto; /* Autorise le défilement horizontal */
-    width: 100%; /* S'assurer qu'il prend toute la largeur disponible */
+    overflow-x: auto;
+    /* Autorise le défilement horizontal */
+    width: 100%;
+    /* S'assurer qu'il prend toute la largeur disponible */
+    overflow: hidden;
 }
 
 /* Barres d'événements */
 .event-bar {
     position: absolute;
-    top: 50%; /* Centrer la barre verticalement */
-    transform: translateY(-50%); /* Ajuste la barre pour que son centre soit aligné avec le milieu */
-    width: 4px; /* Largeur des barres */
-    height: 70%; /* Hauteur des barres */
+    top: 50%;
+    /* Centrer la barre verticalement */
+    transform: translateY(-50%);
+    /* Ajuste la barre pour que son centre soit aligné avec le milieu */
+    width: 4px;
+    /* Largeur des barres */
+    height: 65%;
+    /* Hauteur des barres */
     border-radius: 2px;
     transition: background-color 0.3s ease;
+    overflow: hidden;
 }
 
 /* Barres "up" (vertes) */
 .event-bar.up {
-    background-color: #28a745; /* Vert pour 'up' */
+    background-color: #28a745;
+    /* Vert pour 'up' */
 }
 
 /* Barres "down" (rouges) */
 .event-bar.down {
-    background-color: #dc3545; /* Rouge pour 'down' */
+    background-color: #dc3545;
+    /* Rouge pour 'down' */
 }
 
 /* Tooltip au survol des barres */
 .event-tooltip {
     position: absolute;
-    bottom: 45px; /* Position du tooltip au-dessus de la barre */
+    bottom: 45px;
+    /* Position du tooltip au-dessus de la barre */
     background-color: #333;
     color: #fff;
     padding: 5px;
@@ -155,5 +173,27 @@ h1 {
 }
 
 .event-bar:hover .event-tooltip {
-    display: block; /* Affiche le tooltip au survol */
+    display: block;
+    /* Affiche le tooltip au survol */
+}
+
+/* Labels sous la timeline */
+.event-label {
+    position: absolute;
+    top: 70%;
+    /* Positionne sous la timeline */
+    font-size: 0.8rem;
+    color: #bbb;
+    transform: translateX(-50%);
+    margin-top: 5px;
+}
+
+.event-label.left {
+    left: 1%;
+    transform: translateX(0%);
+}
+
+.event-label.right {
+    right: 1%;
+    transform: translateX(0%);
 }

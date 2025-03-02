@@ -3,7 +3,7 @@ Simple and fast web app with an API to let your users know if the bot is up or d
 
 ## Photos 
 
-![alt text](image.png)
+![alt text](image-1.png)
 
 ## Routes  
 
