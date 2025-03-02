@@ -3,6 +3,30 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    overflow: hidden;
+}
+
+ul {
+    list-style: none;
+    /* Supprime les puces */
+    overflow: scroll;
+    padding: 0;
+    margin: 0;
+    max-width: 100%;
+    /* Évite le dépassement */
+    overflow-x: auto;
+    /* Ajoute un défilement si nécessaire */
+    word-wrap: break-word;
+    /* Coupe les mots longs */
+    max-height: 60%;
+}
+
+li {
+    white-space: nowrap;
+    /* Empêche les éléments de se casser en plusieurs lignes */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    /* Ajoute "..." si le texte est trop long */
 }
 
 /* Corps de la page */
@@ -26,6 +50,8 @@ body {
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
     width: 100%;
     max-width: 900px;
+    overflow: scroll;
+    max-height: 80%;
 }
 
 /* Titre */
