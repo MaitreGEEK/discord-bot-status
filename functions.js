@@ -19,7 +19,7 @@ function init_database(dbFile) {
 function updateShard(shard) {
     try {
         if (!db) return false
-        if (!shard?.id) return false;
+        if (!shard?.id && shard.id != 0) return false;
         let existingShard = getShard(shard.id);
         let currentTime = Date.now()
         shard.ping = shard.ping == 0 ? 0 : shard.ping || null
@@ -210,6 +210,20 @@ function routineCheckShards(responsePeriod) {
     }
 }
 
+function sanitizeSQL(str) {
+    if (typeof str !== 'string') {
+        return str;
+    }
+    // Liste des caractères à échapper
+    return str
+        .replace(/\\/g, '\\\\')  // échappe les barres obliques inverses
+        .replace(/'/g, "''")      // échappe les apostrophes
+        .replace(/"/g, '\\"')     // échappe les guillemets
+        .replace(/;/g, '\\;')     // échappe les points-virgules
+        .replace(/--/g, '\\--')   // échappe les commentaires SQL
+        .replace(/\b(SELECT|INSERT|UPDATE|DELETE|DROP|--|ALTER|CREATE|TRUNCATE|REPLACE)\b/gi, ''); // Élimine les mots-clés SQL
+}
+
 const statusEmoji = { "down": "❌", "up": "🟢" }
 async function getStatusShards() {
     if (!db) return null
@@ -236,7 +250,7 @@ function average(numbers) {
 }
 
 async function formatUptime(seconds) {
-    if (!seconds) return ""
+    if (!seconds && seconds != 0) return ""
     let days = Math.floor(seconds / 86400);
     seconds %= 86400;
     let hours = Math.floor(seconds / 3600);
@@ -248,7 +262,7 @@ async function formatUptime(seconds) {
 
 async function getShardStatus(shard, solo = false) {
     try {
-        if (!shard?.id) return ""
+        if (!shard?.id && shard.id != 0) return ""
         shard.last24hpings = JSON.parse(shard.last24hpings).map(i => i.ping);
         shard.name = solo ? "Bot Status" : `Shard ${shard.id}`
 
@@ -284,7 +298,26 @@ async function date() {
     return fullDate;
 }
 
+async function updateShards(shards) {
+    try {
+        if (!db) return false;
+
+        await Promise.all(shards.map(shard => {
+            if (!shard) return
+            else return updateShard(shard)
+        }))
+
+        return true
+    } catch (error) {
+        promisifiedError("Error while updating shards", error);
+        return false;
+    }
+}
+
+
+
 module.exports = {
+    updateShards,
     promisifiedError,
     promisifiedLog,
     init_database,
@@ -294,5 +327,7 @@ module.exports = {
     deleteShard,
     resetDatabase,
     routineCheckShards,
-    getStatusShards
+    getStatusShards,
+    sanitizeSQL,
+    checkTimeForAllshards
 }

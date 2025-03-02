@@ -1,5 +1,5 @@
 const { apiPort, databasePath, responsePeriod, apiUrl } = require("./specificConfig.json");
-const { init_database, routineCheckShards, updateShard, promisifiedLog, promisifiedError, getStatusShards, resetDatabase } = require("./functions.js");
+const { init_database, routineCheckShards, updateShard, promisifiedLog, promisifiedError, getStatusShards, resetDatabase, getShard, sanitizeSQL, deleteShard, getAllShards, checkTimeForAllshards, updateShards } = require("./functions.js");
 
 (async () => {
     const fdatabasePath = process.argv.includes("dev") ? "test-shards.db" : (process.env.DATABASE_PATH || databasePath || "shards.db")
@@ -11,6 +11,11 @@ const { init_database, routineCheckShards, updateShard, promisifiedLog, promisif
     setInterval(() => {
         routineCheckShards(fresponsePeriod)
     }, fresponsePeriod * 1000);
+
+    checkTimeForAllshards() //Check for the 24h pings and events if they are still 24h away from now
+    setInterval(() => {
+        checkTimeForAllshards()
+    }, 3_600_000);
 })();
 
 
@@ -31,11 +36,13 @@ const server = Bun.serve({
         "/ping": handlePing,
         "/shard/:id": {
             "GET": async req => {
-                return ""
+                let shard = getShard(sanitizeSQL(req.params.id))
+                if (shard) return new Response(JSON.stringify({ success: true, shard }, { headers: { 'Content-Type': 'application/json' }, status: 200 }));
+                else return new Response(JSON.stringify({ success: false, cause: "Internal Server Error" }), { headers: { 'Content-Type': 'application/json' }, status: 500 });
             },
             "POST": async req => {
                 let shard = await req.json();
-                shard.id = req.params.id
+                shard.id = sanitizeSQL(req.params.id)
 
                 if (shard.status) shard.status = "up"
 
@@ -44,7 +51,31 @@ const server = Bun.serve({
                 else return new Response(JSON.stringify({ success: false, cause: "Internal Server Error" }), { headers: { 'Content-Type': 'application/json' }, status: 500 });
             },
             "DELETE": async req => {
-                return ""
+                let response = deleteShard(sanitizeSQL(req.params.id))
+                if (response) return new Response(JSON.stringify({ success: true }, { headers: { 'Content-Type': 'application/json' }, status: 200 }));
+                else return new Response(JSON.stringify({ success: false, cause: "Internal Server Error" }), { headers: { 'Content-Type': 'application/json' }, status: 500 });
+            }
+        },
+        "/shards": {
+            'GET': async () => {
+                let shards = getAllShards()
+                if (shards) return new Response(JSON.stringify({ success: true, shards }, { headers: { 'Content-Type': 'application/json' }, status: 200 }));
+                else return new Response(JSON.stringify({ success: false, cause: "Internal Server Error" }), { headers: { 'Content-Type': 'application/json' }, status: 500 });
+            },
+            'POST': async req => {
+                let shards = await req.json()
+                if (!shards)  return new Response(JSON.stringify({ success: false, cause: "Request Empty" }), { headers: { 'Content-Type': 'application/json' }, status: 400 });
+
+                //UPdate all shards
+                let response = await updateShards(shards)
+
+                if (response) return new Response(JSON.stringify({ success: true }, { headers: { 'Content-Type': 'application/json' }, status: 200 }));
+                else return new Response(JSON.stringify({ success: false, cause: "Internal Server Error" }), { headers: { 'Content-Type': 'application/json' }, status: 500 });
+            },
+            'DELETE': async () => {
+                let response = resetDatabase()
+                if (response) return new Response(JSON.stringify({ success: true }, { headers: { 'Content-Type': 'application/json' }, status: 200 }));
+                else return new Response(JSON.stringify({ success: false, cause: "Internal Server Error" }), { headers: { 'Content-Type': 'application/json' }, status: 500 });
             }
         },
         "/status": {
@@ -57,7 +88,7 @@ const server = Bun.serve({
             }
         },
         "/reset": {
-            "DELETE": async req => {
+            "DELETE": async () => {
                 let response = resetDatabase()
                 if (response) return new Response(JSON.stringify({ success: true }, { headers: { 'Content-Type': 'application/json' }, status: 200 }));
                 else return new Response(JSON.stringify({ success: false, cause: "Internal Server Error" }), { headers: { 'Content-Type': 'application/json' }, status: 500 });
