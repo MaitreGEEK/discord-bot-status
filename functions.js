@@ -141,51 +141,51 @@ const filterRecentData = (data) => {
 }
 
 async function checkTimeForAllshards() {
-    if (!db) return false
+    if (!db) return false;
     try {
         let shards = db.query('SELECT id, last24hpings, last24hevents FROM shards').all();
 
-        let updateStatements = [];
-        let params = [];
+        if (!shards?.length) return false;
 
-        if (!shards?.length) return false
+        let updatePings = [];
+        let updateEvents = [];
+        let paramsPings = [];
+        let paramsEvents = [];
+        let ids = [];
 
-        // Pour chaque ligne, on prépare les nouvelles valeurs de last24hpings et last24hevents
-        shards.forEach((shard, index) => {
+        // Construire les valeurs pour chaque shard
+        shards.forEach((shard) => {
             let last24hpings = JSON.parse(shard.last24hpings || '[]');
             let last24hevents = JSON.parse(shard.last24hevents || '[]');
 
-            // Filtrer les pings et événements des dernières 24 heures
             last24hpings = filterRecentData(last24hpings);
             last24hevents = filterRecentData(last24hevents);
 
-            // Préparer la mise à jour pour cette ligne
-            updateStatements.push(`
-        WHEN ? THEN ? 
-    `);
+            updatePings.push(`WHEN ? THEN ?`);
+            updateEvents.push(`WHEN ? THEN ?`);
 
-            params.push(shard.id, JSON.stringify(last24hpings));
-            params.push(shard.id, JSON.stringify(last24hevents));
+            paramsPings.push(shard.id, JSON.stringify(last24hpings));
+            paramsEvents.push(shard.id, JSON.stringify(last24hevents));
+
+            ids.push(shard.id);
         });
 
-        // Créer la requête UPDATE
         let query = `
             UPDATE shards
             SET 
-                last24hpings = CASE id ${updateStatements.join(' ')} ELSE last24hpings END,
-                last24hevents = CASE id ${updateStatements.join(' ')} ELSE last24hevents END
-            WHERE id IN (${shards.map(() => '?').join(', ')})
+                last24hpings = CASE id ${updatePings.join(' ')} ELSE last24hpings END,
+                last24hevents = CASE id ${updateEvents.join(' ')} ELSE last24hevents END
+            WHERE id IN (${ids.map(() => '?').join(', ')})
         `;
 
-        // Exécuter la mise à jour en une seule requête
-        db.query(query).run(...params, ...shards.map(shard => shard.id));
-        return true
-    }
-    catch (e) {
-        promisifiedLog("Error while updating 24h arrays", e)
-        return false
+        db.query(query).run(...paramsPings, ...paramsEvents, ...ids);
+        return true;
+    } catch (e) {
+        promisifiedLog("Error while updating 24h arrays", e);
+        return false;
     }
 }
+
 
 
 function routineCheckShards(responsePeriod) {
@@ -373,7 +373,7 @@ async function getShardStatusHtml(shard, period, solo = false) {
         const versionText = shard.version ? `- v${shard.version}` : '';
 
         // Diviser la période en segments égaux
-        const segmentsCount = 70; // Diviser en 70 segments (par exemple)
+        const segmentsCount = 50; // Diviser en 70 segments (par exemple)
         const segmentDuration = (period * 1000) / segmentsCount; // Durée de chaque segment en millisecondes (on convertit period en ms)
 
         // Créer un tableau de statuts initiaux pour chaque segment
@@ -383,8 +383,12 @@ async function getShardStatusHtml(shard, period, solo = false) {
         let lastEventStatus = 'down'; // Au début, on suppose que le statut est "down"
         let lastEventTime = Date.now() - (period * 1000); // L'événement précédent est "avant" la période (start), converti en ms
 
+         
+        //lastEventTime + x*period = Date à x%  
+
         for (const event of shard.last24hevents) {
-            const eventTime = event.t; // event.t est déjà en ms, pas besoin de conversion
+            console.log(event)
+            const eventTime = event.t;
 
             if (eventTime < lastEventTime) continue; // Si l'événement est avant la période, ignorer
 
