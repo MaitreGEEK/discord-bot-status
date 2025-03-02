@@ -81,7 +81,7 @@ const server = Bun.serve({
             "GET": async () => {
                 let shards = await getAllShards()
                 if (!shards) return new Response(JSON.stringify({ success: false, cause: "Internal Server Error" }), { headers: { 'Content-Type': 'application/json' }, status: 500 });
-                return new Response(await getStatusPageHtml(shards, fresponsePeriod*10), { headers: { 'Content-Type': 'text/html' } });
+                return new Response(await getStatusPageHtml(shards, fresponsePeriod*20), { headers: { 'Content-Type': 'text/html' } });
             }
         },
         "/reset": {

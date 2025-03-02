@@ -361,58 +361,53 @@ async function getShardStatusHtml(shard, period, solo = false) {
         if (!shard?.id && shard.id != 0) return "";
 
         // Parser les événements et préparer les données
-        shard.last24hevents = JSON.parse(shard.last24hevents);
+        shard.last24hevents = JSON.parse(shard.last24hevents)
         shard.last24hpings = JSON.parse(shard.last24hpings).map(i => i.ping);
         shard.name = solo ? "Bot Status" : `Shard ${shard.id}`;
 
-        const status = shard.status || 'down';
-        const uptimeText = shard.status == "up" ? marked(`**up:** \`${!!shard.uptime ? await formatUptime(Math.floor((Date.now() - shard.uptime) / 1000)) : 'none'}\``) : '';
-        const pingText = shard.status == "up" ? marked(`**ping:** \`${shard.ping}ms\` **24h average ping:** \`${average(shard.last24hpings)}ms\``) : '';
+        let status = shard.status || 'down';
+        let uptimeText = shard.status == "up" ? marked(`**up:** \`${!!shard.uptime ? await formatUptime(Math.floor((Date.now() - shard.uptime) / 1000)) : 'none'}\``) : '';
+        let pingText = shard.status == "up" ? marked(`**ping:** \`${shard.ping}ms\` **24h average ping:** \`${average(shard.last24hpings)}ms\``) : '';
 
         // Si la version est présente, l'afficher, sinon la supprimer
-        const versionText = shard.version ? `- v${shard.version}` : '';
+        let versionText = shard.version ? `- v${shard.version}` : '';
 
-        // Diviser la période en segments égaux
-        const segmentsCount = 50; // Diviser en 70 segments (par exemple)
-        const segmentDuration = (period * 1000) / segmentsCount; // Durée de chaque segment en millisecondes (on convertit period en ms)
+        let segmentsCount = 50; // Nombre de segments
+        let segmentDuration = (period * 1000) / segmentsCount; // Durée de chaque segment en ms
 
-        // Créer un tableau de statuts initiaux pour chaque segment
-        const segmentStatuses = new Array(segmentsCount).fill('down'); // Par défaut, tout est down
+        // Créer les timestamps des segments
+        let segmentTimestamps = Array.from({ length: segmentsCount }, (_, index) =>
+            Date.now() - (period * 1000 - index * segmentDuration)
+        );
 
-        // Assigner les statuts en fonction des événements et de la période
-        let lastEventStatus = 'down'; // Au début, on suppose que le statut est "down"
-        let lastEventTime = Date.now() - (period * 1000); // L'événement précédent est "avant" la période (start), converti en ms
+        // Fonction pour obtenir l'état correspondant à un timestamp donné
+        const getStatusForTimestamp = (timeEvent) => {
+            let status = "down"; // État par défaut
 
-         
-        //lastEventTime + x*period = Date à x%  
-
-        for (const event of shard.last24hevents) {
-            console.log(event)
-            const eventTime = event.t;
-
-            if (eventTime < lastEventTime) continue; // Si l'événement est avant la période, ignorer
-
-            // Trouver les indices des segments
-            const eventStartSegmentIndex = Math.floor((eventTime - lastEventTime) / segmentDuration);
-            const eventEndSegmentIndex = Math.floor((eventTime - lastEventTime + segmentDuration) / segmentDuration);
-
-            // Mettre à jour les statuts des segments entre l'événement précédent et l'événement actuel
-            for (let i = eventStartSegmentIndex; i <= eventEndSegmentIndex; i++) {
-                segmentStatuses[i] = event.event === "up" ? "up" : "down";
+            for (let event of shard.last24hevents) {
+                if (event.t > timeEvent) break; // Dès qu'on dépasse le timestamp, on s'arrête
+                status = event.event; // Met à jour avec le dernier événement connu
             }
 
-            lastEventTime = eventTime; // Mettre à jour le dernier événement
-        }
+            return status;
+        };
+        // Remplissage des statuts
+        let segmentStatuses = segmentTimestamps.map(getStatusForTimestamp);
+
+        console.log(segmentStatuses);
+
+
+        //let lastEventTime = Date.now() - (period * 1000); // L'événement précédent est "avant" la période (start), converti en ms
+
+
+        //lastEventTime + x*period = Date à x%  
 
         // Créer les traits pour chaque segment
-        const eventBars = segmentStatuses.map((status, index) => {
-            const percentage = ((index + 1) / (segmentsCount + 1)) * 100; // Décalage pour que le premier ne soit pas à 0%
-
-            // Calculer le timestamp du segment (en millisecondes) dans la période
-            const segmentStartTimestamp = Date.now() - (period * 1000 - index * segmentDuration);
+        let eventBars = segmentStatuses.map((status, index) => {
+            let percentage = ((index + 1) / (segmentsCount + 1)) * 100; // Décalage pour que le premier ne soit pas à 0%
 
             // Convertir le timestamp en date lisible (format ISO ou autre selon les besoins)
-            const eventDate = new Date(segmentStartTimestamp).toISOString(); // Par exemple en format ISO
+            let eventDate = new Date(segmentTimestamps[index]).toISOString(); // Par exemple en format ISO
 
             // Créer le div de la barre d'événement avec le tooltip contenant la date
             return `
