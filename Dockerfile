@@ -11,9 +11,10 @@ RUN git clone https://github.com/MaitreGEEK/discord-bot-status.git .
 RUN bun install
 
 ENV API_PORT=6070
-ENV DATABASE_PATH=
 ENV API_URL=
+ENV DATABASE_PATH=
 ENV TOKEN=
+ENV RESPONSE_PERIOD=
 
 # Étape 5 : Exposer le port configuré par l'environnement
 EXPOSE ${API_PORT:-6070}

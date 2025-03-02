@@ -22,6 +22,7 @@ function updateShard(shard) {
         if (!shard?.id) return false;
         let existingShard = getShard(shard.id);
         let currentTime = Date.now()
+        shard.ping = shard.ping == 0 ? 0 : shard.ping || null
 
         if (!existingShard) {
             db.query(`INSERT INTO shards (id, uptime, ping, status, last24hpings, last24hevents, server, version, update_time) 
@@ -29,10 +30,10 @@ function updateShard(shard) {
                 .run(
                     shard.id,
                     shard.status === 'up' ? Date.now() : null,
-                    shard.ping || null,
+                    shard.ping,
                     shard.status || 'down',
-                    JSON.stringify(shard.last24hpings || []),
-                    JSON.stringify(shard.last24hevents || []),
+                    JSON.stringify(shard.last24hpings || [{ "t": currentTime, "ping": shard.ping }]),
+                    JSON.stringify(shard.last24hevents || [{ "t": currentTime, "event": shard.status || 'down' }]),
                     shard.server || null,
                     shard.version || null,
                     currentTime
@@ -47,7 +48,6 @@ function updateShard(shard) {
         if (shard.status === 'up') {
             updates.push(`status = "up"`);
             updates.push(`ping = ?`);
-            shard.ping = shard.ping == 0 ? 0 : shard.ping || null
             values.push(shard.ping);
 
             updates.push(`last24hpings = json_insert(last24hpings, "$[#]", json_object('t', ?, 'ping', ?))`);
@@ -56,12 +56,13 @@ function updateShard(shard) {
             updates.push(`last24hevents = json_insert(last24hevents, "$[#]", json_object('t', ?, 'event', "up"))`);
             values.push(currentTime);
 
-            updates.push(`uptime = CASE WHEN uptime IS NULL THEN ? ELSE uptime END`);
-            values.push(Date.now());
+            updates.push(`uptime = CASE WHEN uptime IS NULL THEN ? ELSE uptime END,update_time=?`);
+            values.push(Date.now(), Date.now());
         } else {
             updates.push(`status = "down"`);
             updates.push(`ping = NULL`);
             updates.push(`uptime = NULL`);
+            updates.push(`update_time = NULL`);
 
             updates.push(`last24hevents = json_insert(last24hevents, "$[#]", json_object('t', ?, 'event', "down"))`);
             values.push(currentTime);
@@ -76,9 +77,6 @@ function updateShard(shard) {
             updates.push(`version = ?`);
             values.push(shard.version);
         }
-
-        updates.push(`update_time = ?`);
-        values.push(currentTime);
 
         values.push(shard.id);
 
@@ -138,12 +136,73 @@ function resetDatabase() {
     }
 }
 
+const filterRecentData = (data) => {
+    return data.filter(i => i.t >= Date.now() - 24 * 60 * 60 * 1000);
+}
+
+async function checkTimeForAllshards() {
+    if (!db) return false
+    try {
+        let shards = db.query('SELECT id, last24hpings, last24hevents FROM shards').all();
+
+        let updateStatements = [];
+        let params = [];
+
+        if (!shards?.length) return false
+
+        // Pour chaque ligne, on prépare les nouvelles valeurs de last24hpings et last24hevents
+        shards.forEach((shard, index) => {
+            let last24hpings = JSON.parse(shard.last24hpings || '[]');
+            let last24hevents = JSON.parse(shard.last24hevents || '[]');
+
+            // Filtrer les pings et événements des dernières 24 heures
+            last24hpings = filterRecentData(last24hpings);
+            last24hevents = filterRecentData(last24hevents);
+
+            // Préparer la mise à jour pour cette ligne
+            updateStatements.push(`
+        WHEN ? THEN ? 
+    `);
+
+            params.push(shard.id, JSON.stringify(last24hpings));
+            params.push(shard.id, JSON.stringify(last24hevents));
+        });
+
+        // Créer la requête UPDATE
+        let query = `
+            UPDATE shards
+            SET 
+                last24hpings = CASE id ${updateStatements.join(' ')} ELSE last24hpings END,
+                last24hevents = CASE id ${updateStatements.join(' ')} ELSE last24hevents END
+            WHERE id IN (${shards.map(() => '?').join(', ')})
+        `;
+
+        // Exécuter la mise à jour en une seule requête
+        db.query(query).run(...params, ...shards.map(shard => shard.id));
+        return true
+    }
+    catch (e) {
+        promisifiedLog("Error while updating 24h arrays", e)
+        return false
+    }
+}
+
+
 function routineCheckShards(responsePeriod) {
     if (!db) return false
     try {
-        let now = Date.now()
-        db.query(`UPDATE shards SET status = 'down', uptime_time=NULL,ping=NULL,last24hevents = json_insert(last24hevents, "$[#]", json_object('t', ?, 'event', "down")) WHERE update_time IS NOT NULL AND strftime('%s', ?) - strftime('%s', update_time) > ?`)
-            .run(now, now, responsePeriod);
+        let now = Date.now();
+        db.query(`
+                UPDATE shards 
+                SET status = 'down', 
+                    uptime = NULL, 
+                    update_time = NULL, 
+                    ping = NULL, 
+                    last24hevents = json_insert(last24hevents, "$[#]", json_object('t', ?, 'event', "down"))
+                WHERE update_time IS NOT NULL 
+                    AND (? - update_time) > ?
+                `)
+            .run(now, now, responsePeriod * 1000);
         return true
     } catch (error) {
         promisifiedError("Error while doing the routine check shards", error);
@@ -154,19 +213,51 @@ function routineCheckShards(responsePeriod) {
 const statusEmoji = { "down": "❌", "up": "🟢" }
 async function getStatusShards() {
     if (!db) return null
-    let shards = getAllShards()
+    try {
+        let shards = getAllShards()
 
-    if (!shards?.length) return ["No shards listed... Start sending data to the api via the /shard endpoint!"]
+        if (!shards?.length) return ["No shards listed... Start sending data to the api via the /shard endpoint!"]
 
-    let message = (await Promise.all(shards.map(async shard => {
-        if (!shard) return ""
-        shard.url = new URL(shard.url)
+        if (shards.length == 1) return [(await getShardStatus(shards[0], true))]
+
+        return (await Promise.all(shards.map(async shard => {
+            return getShardStatus(shard)
+        })))
+    }
+    catch (e) {
+        promisifiedError("Error while gettting shard status", e)
+        return null
+    }
+}
+
+function average(numbers) {
+    if (!numbers?.length && !Array.isArray(numbers)) return 0;  // Prévenir la division par zéro
+    return Math.floor(numbers.reduce((acc, num) => acc + num, 0) / numbers.length);
+}
+
+async function formatUptime(seconds) {
+    if (!seconds) return ""
+    let days = Math.floor(seconds / 86400);
+    seconds %= 86400;
+    let hours = Math.floor(seconds / 3600);
+    seconds %= 3600;
+    let minutes = Math.floor(seconds / 60);
+    seconds %= 60
+    return `${days}d ${hours}h ${minutes}m ${seconds}s`;
+}
+
+async function getShardStatus(shard, solo = false) {
+    try {
+        if (!shard?.id) return ""
         shard.last24hpings = JSON.parse(shard.last24hpings).map(i => i.ping);
-        return `\`v${shard.version}\` - [${shard.url.hostname}](${shard.url}) &nbsp; **status:** ${statusEmoji[shard.status || 'down']} ${shard.status == "up" ? `**up:** \`${!!shard.uptime ? await formatUptime(Math.floor((Date.now() - cobalt.uptime) / 1000)) : 'none'}\` **ping:** \`${cobalt.ping}ms\` **24h average ping:** \`${average(cobalt.last24hpings)}ms\`` : ""}`
+        shard.name = solo ? "Bot Status" : `Shard ${shard.id}`
 
-    })))
-
-    return message
+        return `\`v${shard.version}\` - ${shard.name} &nbsp; **status:** ${statusEmoji[shard.status || 'down']} ${shard.status == "up" ? `**up:** \`${!!shard.uptime ? await formatUptime(Math.floor((Date.now() - shard.uptime) / 1000)) : 'none'}\` **ping:** \`${shard.ping}ms\` **24h average ping:** \`${average(shard.last24hpings)}ms\`` : ""}`
+    }
+    catch (e) {
+        promisifiedError("Error while getting shard status", e)
+        return ""
+    }
 }
 
 async function promisifiedLog(...args) {

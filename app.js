@@ -1,13 +1,13 @@
-const { apiPort, databasePath, responsePeriod } = require("./specificConfig.json")
-const { init_database, routineCheckShards, updateShard, promisifiedLog, promisifiedError } = require("./functions")
-const { apiUrl, getShardStatus, setShardStatus, getAllShards } = require("./functions");
+const { apiPort, databasePath, responsePeriod, apiUrl } = require("./specificConfig.json");
+const { init_database, routineCheckShards, updateShard, promisifiedLog, promisifiedError, getStatusShards, resetDatabase } = require("./functions.js");
 
 (async () => {
     const fdatabasePath = process.argv.includes("dev") ? "test-shards.db" : (process.env.DATABASE_PATH || databasePath || "shards.db")
     init_database(fdatabasePath)
-    promisifiedLog("Database ready!", "opened from", fdatabasePath)
+    promisifiedLog("Database ready!", "Opened from", fdatabasePath)
 
-    const fresponsePeriod = process.env.RESPONSE_PERIOD || responsePeriod || 60; // 1 minute (exemple)
+    const fresponsePeriod = process.env.RESPONSE_PERIOD || responsePeriod || 10; // 1 minute (exemple)
+    routineCheckShards(fresponsePeriod)
     setInterval(() => {
         routineCheckShards(fresponsePeriod)
     }, fresponsePeriod * 1000);
@@ -34,10 +34,12 @@ const server = Bun.serve({
                 return ""
             },
             "POST": async req => {
-                let body = await req.json();
-                body.id = req.params.id
+                let shard = await req.json();
+                shard.id = req.params.id
 
-                let response = updateShard(body)
+                if (shard.status) shard.status = "up"
+
+                let response = updateShard(shard)
                 if (response) return new Response(JSON.stringify({ success: true }, { headers: { 'Content-Type': 'application/json' }, status: 200 }));
                 else return new Response(JSON.stringify({ success: false, cause: "Internal Server Error" }), { headers: { 'Content-Type': 'application/json' }, status: 500 });
             },
@@ -46,13 +48,19 @@ const server = Bun.serve({
             }
         },
         "/status": {
-            "GET": async req => {
-                return ""
+            "GET": async () => {
+                let shards = await getStatusShards()
+
+                if (!shards) return new Response(JSON.stringify({ success: false, cause: "Internal Server Error" }), { headers: { 'Content-Type': 'application/json' }, status: 500 });
+
+                return new Response(shards.join("\n"), { headers: { 'Content-Type': 'text/markdown; charset=UTF-8' } });
             }
         },
         "/reset": {
             "DELETE": async req => {
-                return ""
+                let response = resetDatabase()
+                if (response) return new Response(JSON.stringify({ success: true }, { headers: { 'Content-Type': 'application/json' }, status: 200 }));
+                else return new Response(JSON.stringify({ success: false, cause: "Internal Server Error" }), { headers: { 'Content-Type': 'application/json' }, status: 500 });
             }
         }
     },
@@ -81,4 +89,4 @@ async function handlePing() {
     }
 }
 const { version } = require("./package.json")
-promisifiedLog(`Discord Bot Status ${version} running on ${process.env.API_URL || apiUrl || `http://localhost:${server.port}`}`);
+promisifiedLog(`Discord Bot Status v${version} running on ${process.env.API_URL || apiUrl || `http://localhost:${server.port}`}`);
