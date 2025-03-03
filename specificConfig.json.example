@@ -1,0 +1,7 @@
+{
+    "apiPort": 6070,
+    "apiUrl": "https://example.com/",
+    "databasePath": "./shards.db",
+    "responsePeriod": 60,
+    "token": "oirqzmfjezoijqzefomiJEMOIJEFMOijezmofijMOEIjfomeijqfohgriuhgrilfHUEEHFILUhezaf"
+}

@@ -433,8 +433,16 @@ const formatPeriod = (seconds) => {
     return `${seconds}s`; // Secondes
 };
 
+function checkAuthToken(headers, validToken) {
+    let authHeader = headers.get("Authorization");
+    if (!authHeader) return false;
+    let token = authHeader.replace("Bearer ", "").trim();
+    return token === validToken;
+}
+
 
 module.exports = {
+    checkAuthToken,
     getStatusPageHtml,
     updateShards,
     promisifiedError,

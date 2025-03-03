@@ -3,19 +3,47 @@ Simple and fast web app with an API to let your users know if the bot is up or d
 
 ## Photos 
 
-![alt text](image-1.png)
+![screenshot](image-1.png)
+
+## How to install?
+
+### Normal
+
+- Prerequisites
+    - Bun version 1.2.3 and more - [install here](https://bun.sh/docs/installation)
+    - A computer 🔥
+
+- Clone the repo
+```git clone https://github.com/MaitreGEEK/discord-bot-status.git```
+
+- Then go to the repo you just cloned 
+```cd discord-bot-status```
+
+- Install the dependencies (one lmao)
+```bun install```
+
+- Modifies the settings either in a [.env](.env.example) either in [specificConfig.json](./specificConfig.json.example)
+
+- Run the app
+```bun run app.js```
+
+- It will be on http://localhost:6071/ by default
+
+### Dockerfile
+Use the dockerfile to create a docker of the app
 
 ## Routes  
+*$ means they will require a token to work, set the token in .env or in specificConfig.json and then add it in headers Authorization: Bearer {token}*
 
 - `GET /shard/:shardId` → Returns the status of the shard
-- `POST /shard/:shardId` → Modifies the status of the shard *Creates the shard if it doesn’t exist*  
-- `DELETE /shard/:shardId` → Deletes the shard
+- $ `POST /shard/:shardId` → Modifies the status of the shard *Creates the shard if it doesn’t exist*  
+- $ `DELETE /shard/:shardId` → Deletes the shard
 
 - `GET /shards` → Returns the status of all shards
-- `POST /shards` → Updates a bunch of shards at the same time - each shard should have at least an id property, it will update to up by default 
-- `DELETE /shards` → Returns to reset as it's the same thing
+- $ `POST /shards` → Updates a bunch of shards at the same time - each shard should have at least an id property, it will update to up by default 
+- $ `DELETE /shards` → Returns to reset as it's the same thing
 
-- `DELETE /reset` → Resets the database
+- $ `DELETE /reset` → Resets the database
 
 - `GET /status` → Status page displaying all shards and their states  
 
