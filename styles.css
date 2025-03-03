@@ -9,7 +9,7 @@
 ul {
     list-style: none;
     /* Supprime les puces */
-    overflow: hidden;
+    overflow: scroll;
     padding: 0;
     margin: 0;
     max-width: 100%;
@@ -19,11 +19,6 @@ ul {
     word-wrap: break-word;
     /* Coupe les mots longs */
     max-height: 60%;
-	
-	/* I don't speak french */
-	gap: 10px;
-    display: flex;
-    flex-direction: column;
 }
 
 li {
@@ -37,7 +32,7 @@ li {
 /* Corps de la page */
 body {
     font-family: 'Comfortaa', sans-serif;
-    background-color: #050505;
+    background-color: #101011;
     color: #fff;
     line-height: 1.6;
     display: flex;
@@ -49,14 +44,13 @@ body {
 
 /* Conteneur principal */
 #content {
-    background-color: #131313;
-    padding: 20px 15px 20px 20px;
+    background-color: rgba(0, 0, 0, 0.8);
+    padding: 20px;
     border-radius: 8px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
     width: 100%;
     max-width: 900px;
-    overflow-y: scroll;
-    overflow-x: hidden;
+    overflow: scroll;
     max-height: 80%;
 }
 
@@ -64,21 +58,18 @@ body {
 h1 {
     font-size: 2rem;
     color: #fff;
-    margin-bottom: 15px;
+    margin-bottom: 20px;
     text-align: center;
 }
 
 /* Container pour chaque shard */
 .shard-container {
-    background-color: #202020;
-    padding: 15px 10px 0px 15px;
+    background-color: rgba(0, 0, 0, 0.6);
+    margin: 15px 0;
+    padding: 15px;
     border-radius: 8px;
     border-left: 10px solid transparent;
     transition: transform 0.3s ease;
-	
-	display: flex;
-    flex-direction: column;
-    gap: 5px;
 }
 
 .shard-container.up {
@@ -121,6 +112,7 @@ h1 {
 
 /* Détails supplémentaires */
 .shard-details {
+    margin-top: 10px;
     font-size: 1.05rem;
     color: #ddd;
     align-items: center;
@@ -152,23 +144,28 @@ h1 {
 .event-timeline {
     position: relative;
     height: 80px;
-    background-color: #131313;
+    /* Hauteur de la ligne de timeline */
+    margin-top: 20px;
+    background-color: #1a1a1a;
     /* Fond sombre */
     border-radius: 10px;
-    overflow-y: hidden;
-    overflow-x: scroll;
-	
-	display: flex;
-    justify-content: space-between;
-    padding: 10px;
-	
-	gap: 5px;
+    overflow-x: auto;
+    /* Autorise le défilement horizontal */
+    width: 100%;
+    /* S'assurer qu'il prend toute la largeur disponible */
+    overflow: hidden;
 }
 
 /* Barres d'événements */
 .event-bar {
+    position: absolute;
+    top: 50%;
+    /* Centrer la barre verticalement */
+    transform: translateY(-50%);
     /* Ajuste la barre pour que son centre soit aligné avec le milieu */
-    min-width: 5px;
+    width: 4px;
+    /* Largeur des barres */
+    height: 65%;
     /* Hauteur des barres */
     border-radius: 2px;
     transition: background-color 0.3s ease;
@@ -206,38 +203,23 @@ h1 {
     /* Affiche le tooltip au survol */
 }
 
-.event-labels {
-	display: flex;
-    justify-content: space-between;
-    transform: translateY(-5px);
-}
-
 /* Labels sous la timeline */
 .event-label {
+    position: absolute;
+    top: 70%;
     /* Positionne sous la timeline */
     font-size: 0.8rem;
     color: #bbb;
+    transform: translateX(-50%);
     margin-top: 5px;
 }
 
-::-webkit-scrollbar {
-	width: 5px;
-	height: 0px;
-  	border-radius:500px;
+.event-label.left {
+    left: 1%;
+    transform: translateX(0%);
 }
 
-::-webkit-scrollbar-track {
-    background-color: transparent);
-    border-radius: 100px;
+.event-label.right {
+    right: 1%;
+    transform: translateX(0%);
 }
-
-::-webkit-scrollbar-thumb {
-    background-color: #202020;
-    border-radius: 100px;
-}
-
-@media(max-width: 700px) {
-	.shard-details {
-		flex-direction: column;
-	}
-} 
