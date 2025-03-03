@@ -9,25 +9,35 @@ Simple and fast web app with an API to let your users know if the bot is up or d
 
 ### Normal
 
-- Prerequisites
-    - Bun version 1.2.3 and more - [install here](https://bun.sh/docs/installation)
-    - A computer 🔥
+- Prerequisites  
+- Bun version 1.2.3 or later - [Install here](https://bun.sh/docs/installation)  
+- A computer 🔥  
 
-- Clone the repo
-```git clone https://github.com/MaitreGEEK/discord-bot-status.git```
+- Clone the repository  
+```sh  
+git clone https://github.com/MaitreGEEK/discord-bot-status.git  
+```  
 
-- Then go to the repo you just cloned 
-```cd discord-bot-status```
+- Navigate to the project directory  
+```sh  
+cd discord-bot-status  
+```  
 
-- Install the dependencies (one lmao)
-```bun install```
+- Install dependencies (just one, lmao)  
+```sh  
+bun install  
+```  
 
-- Modifies the settings either in a [.env](.env.example) either in [specificConfig.json](./specificConfig.json.example)
+- Configure the settings  
+Modify the configuration either in a [`.env`](.env.example) file or in [`specificConfig.json`](./specificConfig.json.example).  
 
-- Run the app
-```bun run app.js```
+- Run the application  
+```sh  
+bun run app.js  
+```  
 
-- It will be on http://localhost:6071/ by default
+- By default, the app will be available at:  
+[http://localhost:6071/](http://localhost:6071/)  
 
 ### Dockerfile
 Use the dockerfile to create a docker of the app
