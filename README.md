@@ -41,7 +41,7 @@ bun run app.js
 [http://localhost:6071/](http://localhost:6071/)  
 
 ### Dockerfile
-Use the dockerfile to create a docker of the app
+Use the [Dockerfile](./Dockerfile) to create a docker of the app
 
 ## Routes  
 *$ means they will require a token to work, set the token in .env or in specificConfig.json and then add it in headers Authorization: Bearer {token}*
