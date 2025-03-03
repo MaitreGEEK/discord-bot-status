@@ -10,8 +10,8 @@ Simple and fast web app with an API to let your users know if the bot is up or d
 ### Normal
 
 - Prerequisites  
-- Bun version 1.2.3 or later - [Install here](https://bun.sh/docs/installation)  
-- A computer 🔥  
+    - Bun version 1.2.3 or later - [Install here](https://bun.sh/docs/installation)  
+    - A computer 🔥  
 
 - Clone the repository  
 ```sh  
