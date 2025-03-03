@@ -350,6 +350,13 @@ async function getStatusPageHtml(shards, T, metadata = "") {
               ${shardsHtml}
             </ul>
           </div>
+		  <script>
+scrollableTimelines = document.querySelectorAll(".event-timeline");
+
+scrollableTimelines.forEach((timeline) => {
+    timeline.scrollLeft = timeline.scrollWidth;
+});
+            </script>
         </body>
       </html>
     `;
@@ -391,16 +398,14 @@ async function getShardStatusHtml(shard, period, solo = false) {
         //lastEventTime + x*period = Date à x%  
 
         let eventBars = segmentStatuses.map((status, index) => {
-            let label = "";
-
-            if (index === 0) label = `<div class="event-label left">${formatPeriod(period)} ago</div>`;
-            if (index === segmentStatuses.length - 1) label = `<div class="event-label right">now</div>`;
-
+			let jsScroll = '';
+			
+			if(index == segmentStatuses.length - 1) jsScroll = `last`;
+			
             return `
-                <div class="event-bar ${status}" style="left: ${((index + 1) / (segmentsCount + 1)) * 100}%"
+                <div class="event-bar ${status} ${jsScroll}"
                     title="Event at: ${new Date(segmentTimestamps[index]).toISOString()}">
                 </div>
-                ${label}
             `;
         }).join('');
 
@@ -417,6 +422,10 @@ async function getShardStatusHtml(shard, period, solo = false) {
                 </div>
                 <div class="event-timeline">
                     ${eventBars}
+                </div>
+                <div class="event-labels">
+                    <div class="event-label left">${formatPeriod(period)} ago</div>
+                    <div class="event-label right">now</div>
                 </div>
             </div>
         `;
