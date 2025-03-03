@@ -29,7 +29,8 @@ bun install
 ```  
 
 - Configure the settings  
-Modify the configuration either in a [`.env`](.env.example) file or in [`specificConfig.json`](./specificConfig.json.example).  
+Modify the configuration either in a [`.env`](.env.example) file or in [`specificConfig.json`](./specificConfig.json.example)
+*Priority order .env > specificConfig.json > default*  
 
 - Run the application  
 ```sh  
