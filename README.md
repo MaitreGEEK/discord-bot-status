@@ -12,7 +12,7 @@ Simple and fast web app with an API to let your users know if the bot is up or d
 - `DELETE /shard/:shardId` → Deletes the shard
 
 - `GET /shards` → Returns the status of all shards
-- `POST /shards` → Updates a bunch of shards at the same time
+- `POST /shards` → Updates a bunch of shards at the same time - each shard should have at least an id property, it will update to up by default 
 - `DELETE /shards` → Returns to reset as it's the same thing
 
 - `DELETE /reset` → Resets the database
