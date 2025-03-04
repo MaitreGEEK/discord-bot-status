@@ -1,0 +1,2 @@
+- Search bar for searching shards
+- Get your shard status by putting your guild id
