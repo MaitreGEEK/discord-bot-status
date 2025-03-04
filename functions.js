@@ -32,8 +32,8 @@ function updateShard(shard) {
                     shard.status === 'up' ? Date.now() : null,
                     shard.ping,
                     shard.status || 'down',
-                    JSON.stringify(shard.last24hpings || [{ "t": currentTime, "ping": shard.ping }]),
-                    JSON.stringify(shard.last24hevents || [{ "t": currentTime, "event": shard.status || 'down' }]),
+                    shard.ping ? JSON.stringify([{ "t": currentTime, "ping": shard.ping }]) : "[]",
+                    JSON.stringify([{ "t": currentTime, "event": shard.status || 'down' }]),
                     shard.server || null,
                     shard.version || null,
                     currentTime
