@@ -58,7 +58,7 @@ const server = Bun.serve({
             },
             "DELETE": async req => {
                 if (!(checkAuthToken(req.headers, validToken))) return new Response(JSON.stringify({ success: false, cause: "Forbidden" }), { headers: { 'Content-Type': 'application/json' }, status: 403 });
-                
+
                 let response = deleteShard(sanitizeSQL(req.params.id))
                 if (response) return new Response(JSON.stringify({ success: true }, { headers: { 'Content-Type': 'application/json' }, status: 200 }));
                 else return new Response(JSON.stringify({ success: false, cause: "Internal Server Error" }), { headers: { 'Content-Type': 'application/json' }, status: 500 });
@@ -73,16 +73,16 @@ const server = Bun.serve({
             'POST': async req => {
                 if (!(checkAuthToken(req.headers, validToken))) return new Response(JSON.stringify({ success: false, cause: "Forbidden" }), { headers: { 'Content-Type': 'application/json' }, status: 403 });
                 let shards = await req.json()
-                if (!shards)  return new Response(JSON.stringify({ success: false, cause: "Request Empty" }), { headers: { 'Content-Type': 'application/json' }, status: 400 });
+                if (!shards) return new Response(JSON.stringify({ success: false, cause: "Request Empty" }), { headers: { 'Content-Type': 'application/json' }, status: 400 });
 
                 //UPdate all shards
                 let response = await updateShards(shards)
                 if (response) return new Response(JSON.stringify({ success: true }, { headers: { 'Content-Type': 'application/json' }, status: 200 }));
                 else return new Response(JSON.stringify({ success: false, cause: "Internal Server Error" }), { headers: { 'Content-Type': 'application/json' }, status: 500 });
             },
-            'DELETE': async () => {
+            'DELETE': async req => {
                 if (!(checkAuthToken(req.headers, validToken))) return new Response(JSON.stringify({ success: false, cause: "Forbidden" }), { headers: { 'Content-Type': 'application/json' }, status: 403 });
-                
+
                 let response = resetDatabase()
                 if (response) return new Response(JSON.stringify({ success: true }, { headers: { 'Content-Type': 'application/json' }, status: 200 }));
                 else return new Response(JSON.stringify({ success: false, cause: "Internal Server Error" }), { headers: { 'Content-Type': 'application/json' }, status: 500 });
@@ -92,13 +92,13 @@ const server = Bun.serve({
             "GET": async () => {
                 let shards = await getAllShards()
                 if (!shards) return new Response(JSON.stringify({ success: false, cause: "Internal Server Error" }), { headers: { 'Content-Type': 'application/json' }, status: 500 });
-                return new Response(await getStatusPageHtml(shards, fresponsePeriod*20), { headers: { 'Content-Type': 'text/html' } });
+                return new Response(await getStatusPageHtml(shards, fresponsePeriod * 20), { headers: { 'Content-Type': 'text/html' } });
             }
         },
         "/reset": {
-            "DELETE": async () => {
+            "DELETE": async req => {
                 if (!(checkAuthToken(req.headers, validToken))) return new Response(JSON.stringify({ success: false, cause: "Forbidden" }), { headers: { 'Content-Type': 'application/json' }, status: 403 });
-                
+
                 let response = resetDatabase()
                 if (response) return new Response(JSON.stringify({ success: true }, { headers: { 'Content-Type': 'application/json' }, status: 200 }));
                 else return new Response(JSON.stringify({ success: false, cause: "Internal Server Error" }), { headers: { 'Content-Type': 'application/json' }, status: 500 });
